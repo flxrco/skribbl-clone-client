@@ -11,6 +11,7 @@ import { Prop, Watch } from 'vue-property-decorator'
 import IFreedrawPath from './freedraw-path.interface'
 import FabricUtils from 'src/utils/fabric.util'
 import IDimensions from '../../models/geometry/dimensions.interface'
+import GeomUtils from 'src/utils/geom.util'
 
 @Component
 export default class CWhiteboard extends Vue {
@@ -23,9 +24,14 @@ export default class CWhiteboard extends Vue {
   paths!: IFreedrawPath[]
 
   @Prop({
-    default: () => ({ height: 500, width: 500 }),
+    default: () => FabricUtils.REFERENCE_DIMENSIONS,
   })
   dimensions!: IDimensions
+
+  @Prop({
+    default: () => 1,
+  })
+  scale!: number
 
   data() {
     return {
@@ -34,7 +40,7 @@ export default class CWhiteboard extends Vue {
   }
 
   mounted() {
-    const { width, height } = this.dimensions
+    const { width, height } = this.scaledDimensions
     this.canvas = new fabric.StaticCanvas(this.id, {
       renderOnAddRemove: false,
       width,
@@ -44,22 +50,27 @@ export default class CWhiteboard extends Vue {
     this.renderCanvas()
   }
 
-  getPolylines(): fabric.Polyline[] {
-    const { width, height } = this.dimensions
-    return this.paths.map(path => {
-      const polyline = FabricUtils.createPolyline(
-        { width, height },
-        path.points
-      )
-      polyline.stroke = path.color
-      polyline.strokeWidth = path.width
-      polyline.fill = 'transparent'
-      return polyline
-    })
+  get scaledDimensions(): IDimensions {
+    return GeomUtils.scaleDimensions(this.dimensions, this.scale)
   }
 
-  @Watch('dimensions')
-  onDimensionChange() {
+  get polylines(): fabric.Polyline[] {
+    return this.paths.map(path =>
+      FabricUtils.createPolyline(this.scale, path.points, {
+        stroke: path.color,
+        strokeWidth: path.width * this.scale,
+        fill: 'transparent',
+      })
+    )
+  }
+
+  @Watch('scaledDimensions')
+  onScaledDimensionChange() {
+    if (!this.canvas) {
+      return
+    }
+
+    this.canvas.setDimensions(this.scaledDimensions)
     this.renderCanvas()
   }
 
@@ -73,9 +84,8 @@ export default class CWhiteboard extends Vue {
       return
     }
 
-    const polylines = this.getPolylines()
     this.canvas.clear()
-    this.canvas.add(...polylines)
+    this.canvas.add(...this.polylines)
     this.canvas.requestRenderAll()
   }
 }
