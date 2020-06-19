@@ -16,7 +16,7 @@ export interface StoreInterface {
   example: unknown;
 }
 
-export default store(function ({ Vue }) {
+export default store(function({ Vue }) {
   Vue.use(Vuex);
 
   const Store = new Vuex.Store<StoreInterface>({
@@ -26,7 +26,7 @@ export default store(function ({ Vue }) {
 
     // enable strict mode (adds overhead!)
     // for dev mode only
-    strict: !!process.env.DEV
+    strict: !!process.env.DEV,
   });
 
   return Store;

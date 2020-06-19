@@ -3,7 +3,7 @@ export interface ExampleStateInterface {
 }
 
 const state: ExampleStateInterface = {
-  prop: false
+  prop: false,
 };
 
 export default state;

@@ -3,9 +3,9 @@ import { StoreInterface } from '../index';
 import { ExampleStateInterface } from './state';
 
 const getters: GetterTree<ExampleStateInterface, StoreInterface> = {
-  someAction (/* context */) {
+  someAction(/* context */) {
     // your code
-  }
+  },
 };
 
 export default getters;
