@@ -10,10 +10,10 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue from 'vue'
 
-import ExampleComponent from 'components/ClassComponent.vue';
-import { Todo, Meta } from 'components/models';
+import ExampleComponent from 'components/ClassComponent.vue'
+import { Todo, Meta } from 'components/models'
 
 export default Vue.extend({
   name: 'PageIndex',
@@ -40,11 +40,11 @@ export default Vue.extend({
         id: 5,
         content: 'ct5',
       },
-    ];
+    ]
     const meta: Meta = {
       totalCount: 1200,
-    };
-    return { todos, meta };
+    }
+    return { todos, meta }
   },
-});
+})
 </script>

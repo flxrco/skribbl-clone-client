@@ -7,7 +7,7 @@
 // https://quasar.dev/quasar-cli/quasar-conf-js
 /* eslint-env node */
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { configure } = require('quasar/wrappers');
+const { configure } = require('quasar/wrappers')
 
 module.exports = configure(function(ctx) {
   return {
@@ -72,7 +72,7 @@ module.exports = configure(function(ctx) {
             test: /\.(js|vue)$/,
             loader: 'eslint-loader',
             exclude: /node_modules/,
-          });
+          })
         }
       },
     },
@@ -189,5 +189,5 @@ module.exports = configure(function(ctx) {
         // chainWebpack also available besides this extendWebpack
       },
     },
-  };
-});
+  }
+})
