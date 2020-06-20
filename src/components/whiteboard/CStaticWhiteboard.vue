@@ -1,27 +1,21 @@
 <template>
-  <canvas :id="id" />
+  <div :style="containerStyles">
+    <canvas :id="id" />
+  </div>
 </template>
 
 <script lang="ts">
 import Component from 'vue-class-component'
-import shortid from 'shortid'
 import { fabric } from 'fabric'
 import { Prop, Watch } from 'vue-property-decorator'
 import IFreedrawPath from './freedraw-path.interface'
 import FabricUtils from 'src/utils/fabric.util'
-import IDimensions from '../../models/geometry/dimensions.interface'
-import GeomUtils from 'src/utils/geom.util'
 import WhiteboardMixin from './whiteboard.mixin'
 
 @Component
-export default class CWhiteboard extends WhiteboardMixin {
-  readonly id = shortid()
-
-  // to be instantiated upon mounting
-  canvas!: fabric.StaticCanvas
-
+export default class CStaticWhiteboard extends WhiteboardMixin {
   @Prop({
-    default: () => [],
+    default: () => [] as IFreedrawPath[],
   })
   paths!: IFreedrawPath[]
 
@@ -29,11 +23,11 @@ export default class CWhiteboard extends WhiteboardMixin {
    * On mount, the canvas will be bootstrapped.
    */
   mounted() {
-    const { width, height } = this.scaledDimensions
     this.canvas = new fabric.StaticCanvas(this.id, {
       renderOnAddRemove: false,
-      width,
-      height,
+      // contains width and height
+      ...this.scaledDimensions,
+      backgroundColor: this.backgroundColor,
     })
 
     this.renderCanvas()
@@ -49,22 +43,21 @@ export default class CWhiteboard extends WhiteboardMixin {
         stroke: path.color,
         strokeWidth: path.width * this.scale,
         fill: 'transparent',
+        strokeLineCap: 'round',
       })
     )
   }
 
-  @Watch('scaledDimensions')
-  onScaledDimensionChange() {
-    if (!this.canvas) {
-      return
-    }
+  get $canvas() {
+    return this.canvas
+  }
 
-    this.canvas.setDimensions(this.scaledDimensions)
+  didDimensionsChange() {
     this.renderCanvas()
   }
 
-  @Watch('paths')
-  onPathsChange() {
+  @Watch('polylines')
+  onPolylinesChange() {
     this.renderCanvas()
   }
 

@@ -13,10 +13,10 @@ export default class GeomUtils {
     }
   }
 
-  static scalePoint({ x, y }: IPoint, scale = 1): IPoint {
+  static scalePoint({ x, y }: IPoint, scale = 1, offset = 0): IPoint {
     return {
-      x: x * scale,
-      y: y * scale,
+      x: x * scale + offset,
+      y: y * scale + offset,
     }
   }
 

@@ -1,40 +1,43 @@
-import Vue from 'vue'
-import { Prop } from 'vue-property-decorator'
-import FabricUtils from 'src/utils/fabric.util'
-import IDimensions from 'src/models/geometry/dimensions.interface'
-import GeomUtils from 'src/utils/geom.util'
+import shortid from 'shortid'
+import ScalablePageMixin from './scalable-page.mixin'
+import { Watch, Prop } from 'vue-property-decorator'
 
-/**
- * Acts like a mixin for Whiteboard-like components.
- * Provides deals with dimensions and scaling.
- */
-export default class WhiteboardMixin extends Vue {
+export default abstract class WhiteboardMixin extends ScalablePageMixin {
   /**
-   * Contains the dimensions of the source material.
+   * We need a dynamic id per instance so we don't mix up our canvases
+   * in case we have many. This will be the id of the canvas and will be
+   * the id provided to fabric.
    */
-  @Prop({
-    default: () => FabricUtils.REFERENCE_DIMENSIONS,
-  })
-  dimensions!: IDimensions
+  readonly id = shortid()
 
-  /**
-   * How much the dimensions of the source will be scaled. The widths and the coordinates
-   * of the freehand paths will be adjusted according to this scale.
-   */
-  @Prop({
-    default: () => 1,
-  })
-  scale!: number
+  // to be instantiated upon mounting
+  canvas!: fabric.StaticCanvas
 
-  /**
-   * The scaled version of the soruce dimension.
-   */
-  get scaledDimensions(): IDimensions {
-    // to avoid unnecessary scaling
-    if (this.scale === 1) {
-      return this.dimensions
+  @Watch('scaledDimensions')
+  onScaledDimensionChange() {
+    if (!this.canvas) {
+      return
     }
 
-    return GeomUtils.scaleDimensions(this.dimensions, this.scale)
+    this.canvas.setDimensions(this.scaledDimensions)
+    this.didDimensionsChange()
+  }
+
+  abstract didDimensionsChange(): void
+
+  @Prop({ default: () => 'transparent' })
+  backgroundColor!: string
+
+  @Watch('backgroundColor')
+  onBackgroundColorChange(color: string) {
+    this.canvas.setBackgroundColor(color, () => this.canvas.requestRenderAll())
+  }
+
+  get containerStyles() {
+    const { width, height } = this.scaledDimensions
+    return {
+      width: `${width}px`,
+      height: `${height}px`,
+    }
   }
 }
