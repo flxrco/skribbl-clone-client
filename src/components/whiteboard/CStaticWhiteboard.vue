@@ -15,7 +15,9 @@ import GeomUtils from 'src/utils/geom.util'
 
 @Component
 export default class CWhiteboard extends Vue {
-  id!: string
+  readonly id = shortid()
+
+  // to be instantiated upon mounting
   canvas!: fabric.StaticCanvas
 
   @Prop({
@@ -23,22 +25,26 @@ export default class CWhiteboard extends Vue {
   })
   paths!: IFreedrawPath[]
 
+  /**
+   * Contains the dimensions of the source material.
+   */
   @Prop({
     default: () => FabricUtils.REFERENCE_DIMENSIONS,
   })
   dimensions!: IDimensions
 
+  /**
+   * How much the dimensions of the source will be scaled. The widths and the coordinates
+   * of the freehand paths will be adjusted according to this scale.
+   */
   @Prop({
     default: () => 1,
   })
   scale!: number
 
-  data() {
-    return {
-      id: shortid(),
-    }
-  }
-
+  /**
+   * On mount, the canvas will be bootstrapped.
+   */
   mounted() {
     const { width, height } = this.scaledDimensions
     this.canvas = new fabric.StaticCanvas(this.id, {
@@ -50,10 +56,22 @@ export default class CWhiteboard extends Vue {
     this.renderCanvas()
   }
 
+  /**
+   * The scaled version of the soruce dimension.
+   */
   get scaledDimensions(): IDimensions {
+    // to avoid unnecessary scaling
+    if (this.scale === 1) {
+      return this.dimensions
+    }
+
     return GeomUtils.scaleDimensions(this.dimensions, this.scale)
   }
 
+  /**
+   * Converts the paths to polylines which already contain
+   * stroke width and color data. Ready to be plugged into the canvas.
+   */
   get polylines(): fabric.Polyline[] {
     return this.paths.map(path =>
       FabricUtils.createPolyline(this.scale, path.points, {
@@ -79,6 +97,10 @@ export default class CWhiteboard extends Vue {
     this.renderCanvas()
   }
 
+  /**
+   * To be called whenever theres a change to the dimension,
+   * scale, or the paths.
+   */
   renderCanvas() {
     if (!this.canvas) {
       return
