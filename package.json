@@ -15,6 +15,7 @@
     "@quasar/extras": "^1.0.0",
     "@stomp/rx-stomp": "^0.3.5",
     "axios": "^0.18.1",
+    "chaikin-smooth": "^1.0.4",
     "core-js": "^3.6.5",
     "fabric": "^3.6.3",
     "lodash": "^4.17.15",
@@ -39,8 +40,8 @@
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.9.0",
     "eslint-loader": "^3.0.3",
-    "eslint-plugin-vue": "^6.1.2",
     "eslint-plugin-quasar": "^1.0.0",
+    "eslint-plugin-vue": "^6.1.2",
     "vue-class-component": "^7.2.2",
     "vue-property-decorator": "^8.3.0"
   },

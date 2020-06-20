@@ -9,8 +9,9 @@ import Component from 'vue-class-component'
 import { fabric } from 'fabric'
 import { Prop, Watch } from 'vue-property-decorator'
 import IFreedrawPath from './freedraw-path.interface'
-import FabricUtils from 'src/utils/fabric.util'
 import WhiteboardMixin from './whiteboard.mixin'
+import IPoint from '../../models/geometry/point.interface'
+import GeomUtils from '../../utils/geom.util'
 
 @Component
 export default class CStaticWhiteboard extends WhiteboardMixin {
@@ -38,18 +39,25 @@ export default class CStaticWhiteboard extends WhiteboardMixin {
    * stroke width and color data. Ready to be plugged into the canvas.
    */
   get polylines(): fabric.Polyline[] {
-    return this.paths.map(path =>
-      FabricUtils.createPolyline(this.scale, path.points, {
-        stroke: path.color,
-        strokeWidth: path.width * this.scale,
-        fill: 'transparent',
-        strokeLineCap: 'round',
-      })
+    return this.paths.map(
+      ({ color, width }, index) =>
+        new fabric.Polyline(this.scaledAndSmoothenedPaths[index], {
+          stroke: color,
+          strokeWidth: width * this.scale,
+          fill: 'transparent',
+          strokeLineCap: 'round',
+          strokeLineJoin: 'round',
+        })
     )
   }
 
-  get $canvas() {
-    return this.canvas
+  get scaledAndSmoothenedPaths(): IPoint[][] {
+    return this.paths
+      .map(path => path.points)
+      .map(pointArr => {
+        return pointArr.map(point => GeomUtils.scalePoint(point, this.scale))
+      })
+      .map(scaledPointArr => GeomUtils.smoothenPolyline(scaledPointArr, 2))
   }
 
   didDimensionsChange() {

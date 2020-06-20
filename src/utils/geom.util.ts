@@ -1,6 +1,7 @@
+import smooth from 'chaikin-smooth'
+import { scale } from 'proportional-scale'
 import IDimensions from 'src/models/geometry/dimensions.interface'
 import IPoint from 'src/models/geometry/point.interface'
-import { scale } from 'proportional-scale'
 
 export default class GeomUtils {
   static scaleDimensions(
@@ -29,5 +30,16 @@ export default class GeomUtils {
         ? { ...sourceDims, maxWidth }
         : { ...sourceDims, maxHeight }
     ).scale
+  }
+
+  static smoothenPolyline(polyline: IPoint[], rounds = 1) {
+    let transformed = polyline.map(({ x, y }) => [x, y])
+
+    for (let i = 0; i < rounds; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      transformed = smooth(transformed) as [number, number][]
+    }
+
+    return transformed.map(([x, y]) => ({ x, y }))
   }
 }

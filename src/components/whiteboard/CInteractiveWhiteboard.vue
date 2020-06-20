@@ -6,18 +6,19 @@
 
 <script lang="ts">
 import { fabric } from 'fabric'
-import { Subscription, fromEvent } from 'rxjs'
+import { fromEvent, Subject, merge } from 'rxjs'
+import { takeUntil, tap, exhaustMap, filter, auditTime } from 'rxjs/operators'
 import WhiteboardMixin from './whiteboard.mixin'
-import { cloneDeep } from 'lodash'
 import { Prop, Watch, Component, Emit } from 'vue-property-decorator'
 import FabricUtils from '../../utils/fabric.util'
 import GeomUtils from '../../utils/geom.util'
 import IFreedrawPath from './freedraw-path.interface'
+import { cloneDeep } from 'lodash'
+import IPoint from '../../models/geometry/point.interface'
 
 @Component
 export default class CInteractiveWhiteboard extends WhiteboardMixin {
-  drawingSub!: Subscription
-
+  private unsubscriber = new Subject<void>()
   // override the type of the canvas object of the mixin
   canvas: fabric.Canvas = null
 
@@ -70,15 +71,35 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
 
   listenForDrawing() {
     // need to use `any` because of typing confict between rxjs and canvas with regards to the event callback parameter on Object#on
-    this.drawingSub = fromEvent<{ path: fabric.Path }>(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      this.canvas as any,
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const canvas = this.canvas as any
+
+    const finishedDrawing$ = fromEvent<{ path: fabric.Path }>(
+      canvas,
       'path:created'
-    ).subscribe(({ path }) => {
-      console.debug(cloneDeep(this.canvas))
-      this.canvas.clear()
-      this.processAndEmitPath(path)
-    })
+    ).pipe(
+      tap(({ path }) => {
+        this.emitDrawingFinished(path)
+        this.canvas.clear()
+      })
+    )
+
+    const currentlyDrawing$ = fromEvent(canvas, 'mouse:down').pipe(
+      filter(() => this.allowDrawing),
+      exhaustMap(() => {
+        return fromEvent<{ path: fabric.Path }>(canvas, 'mouse:move').pipe(
+          takeUntil(fromEvent(canvas, 'mouse:up'))
+        )
+      }),
+      auditTime(100),
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      tap(() => this.emitDrawingOngoing(canvas.freeDrawingBrush._points))
+    )
+
+    merge(currentlyDrawing$, finishedDrawing$)
+      .pipe(takeUntil(this.unsubscriber))
+      .subscribe()
   }
 
   /**
@@ -86,19 +107,24 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
    * Automatically scales the points and the brush width into 1.
    * The resulting IFreedrawPath will be emitted.
    */
-  @Emit('input')
-  processAndEmitPath(path: fabric.Path): IFreedrawPath {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const points = (path.path as any[]).map(
-      (point: [string, number, number]) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        let [svgCmd, x, y] = point
-        return GeomUtils.scalePoint({ x, y }, 1 / this.scale)
-      }
+  @Emit('drawing-finished')
+  emitDrawingFinished(fabricPath: fabric.Path): IFreedrawPath {
+    const path = (fabricPath.path as any[]).map(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      ([svgCmd, x, y]: [string, number, number]) => ({ x, y })
     )
 
+    return this.transformDrawingPath(path)
+  }
+
+  @Emit('drawing-ongoing')
+  emitDrawingOngoing(path: IPoint[]): IFreedrawPath {
+    return this.transformDrawingPath(path)
+  }
+
+  transformDrawingPath(path: IPoint[]): IFreedrawPath {
     return {
-      points,
+      points: path.map(point => GeomUtils.scalePoint(point, 1 / this.scale)),
       color: this.brushColor,
       width: this.brushWidth,
     }
@@ -118,9 +144,8 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
   }
 
   destroyed() {
-    if (this.drawingSub) {
-      this.drawingSub.unsubscribe()
-    }
+    this.unsubscriber.next()
+    this.unsubscriber.complete()
   }
 
   didDimensionsChange() {

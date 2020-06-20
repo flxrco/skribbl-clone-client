@@ -13,7 +13,7 @@
         :scale="scale"
         :allowDrawing="true"
         brushColor="#555555"
-        @input="onInput"
+        @drawing-finished="onInput"
       />
       <q-resize-observer @resize="onResize" />
     </div>
