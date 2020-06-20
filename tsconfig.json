@@ -3,6 +3,5 @@
   "compilerOptions": {
     "baseUrl": ".",
     "experimentalDecorators": true
-  },
-  "include": ["src/**/*"]
+  }
 }

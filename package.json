@@ -8,7 +8,8 @@
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue ./",
     "test": "echo \"No test specified\" && exit 0",
-    "format": "prettier --write \"{,!(node_modules)/**/}*.{js,ts,vue}\""
+    "format": "prettier --write \"{,!(node_modules)/**/}*.{js,ts,vue}\"",
+    "purge": "rm -rf ./node_modules"
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
@@ -23,9 +24,7 @@
     "rxjs": "^6.5.5",
     "shortid": "^2.2.15",
     "sockjs-client": "^1.4.0",
-    "vue-class-component": "^7.2.2",
-    "vue-i18n": "^8.0.0",
-    "vue-property-decorator": "^8.3.0"
+    "vue-i18n": "^8.0.0"
   },
   "devDependencies": {
     "@quasar/app": "^2.0.0",
@@ -40,7 +39,10 @@
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.9.0",
     "eslint-loader": "^3.0.3",
-    "eslint-plugin-vue": "^6.1.2"
+    "eslint-plugin-vue": "^6.1.2",
+    "eslint-plugin-quasar": "^1.0.0",
+    "vue-class-component": "^7.2.2",
+    "vue-property-decorator": "^8.3.0"
   },
   "browserslist": [
     "last 10 Chrome versions",
