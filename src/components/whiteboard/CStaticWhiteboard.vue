@@ -3,7 +3,6 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
 import Component from 'vue-class-component'
 import shortid from 'shortid'
 import { fabric } from 'fabric'
@@ -12,9 +11,10 @@ import IFreedrawPath from './freedraw-path.interface'
 import FabricUtils from 'src/utils/fabric.util'
 import IDimensions from '../../models/geometry/dimensions.interface'
 import GeomUtils from 'src/utils/geom.util'
+import BaseWhiteboard from './BaseWhiteboard'
 
 @Component
-export default class CWhiteboard extends Vue {
+export default class CWhiteboard extends BaseWhiteboard {
   readonly id = shortid()
 
   // to be instantiated upon mounting
@@ -24,23 +24,6 @@ export default class CWhiteboard extends Vue {
     default: () => [],
   })
   paths!: IFreedrawPath[]
-
-  /**
-   * Contains the dimensions of the source material.
-   */
-  @Prop({
-    default: () => FabricUtils.REFERENCE_DIMENSIONS,
-  })
-  dimensions!: IDimensions
-
-  /**
-   * How much the dimensions of the source will be scaled. The widths and the coordinates
-   * of the freehand paths will be adjusted according to this scale.
-   */
-  @Prop({
-    default: () => 1,
-  })
-  scale!: number
 
   /**
    * On mount, the canvas will be bootstrapped.
@@ -54,18 +37,6 @@ export default class CWhiteboard extends Vue {
     })
 
     this.renderCanvas()
-  }
-
-  /**
-   * The scaled version of the soruce dimension.
-   */
-  get scaledDimensions(): IDimensions {
-    // to avoid unnecessary scaling
-    if (this.scale === 1) {
-      return this.dimensions
-    }
-
-    return GeomUtils.scaleDimensions(this.dimensions, this.scale)
   }
 
   /**
