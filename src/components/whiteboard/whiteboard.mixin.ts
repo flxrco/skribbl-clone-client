@@ -8,7 +8,7 @@ import GeomUtils from 'src/utils/geom.util'
  * Acts like a mixin for Whiteboard-like components.
  * Provides deals with dimensions and scaling.
  */
-export default class BaseWhiteboard extends Vue {
+export default class WhiteboardMixin extends Vue {
   /**
    * Contains the dimensions of the source material.
    */

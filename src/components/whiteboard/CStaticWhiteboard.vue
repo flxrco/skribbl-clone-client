@@ -11,10 +11,10 @@ import IFreedrawPath from './freedraw-path.interface'
 import FabricUtils from 'src/utils/fabric.util'
 import IDimensions from '../../models/geometry/dimensions.interface'
 import GeomUtils from 'src/utils/geom.util'
-import BaseWhiteboard from './BaseWhiteboard'
+import WhiteboardMixin from './whiteboard.mixin'
 
 @Component
-export default class CWhiteboard extends BaseWhiteboard {
+export default class CWhiteboard extends WhiteboardMixin {
   readonly id = shortid()
 
   // to be instantiated upon mounting
