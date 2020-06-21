@@ -32,7 +32,7 @@ import CInteractiveWhiteboard from 'components/whiteboard/CInteractiveWhiteboard
 import { InjectReactive } from 'vue-property-decorator'
 import { fromEvent, Subject } from 'rxjs'
 import IFreedrawEvent from '../components/whiteboard/freedraw-event.interface'
-import { takeUntil } from 'rxjs/operators'
+import { takeUntil, map } from 'rxjs/operators'
 import { mapMutations, mapGetters } from 'vuex'
 import IFreedrawPath from '../components/whiteboard/freedraw-path.interface'
 import IFreedrawSocketEvent from '../components/whiteboard/freedraw-socket-event.interface'
@@ -79,7 +79,13 @@ export default class Index extends Vue {
 
   handleSocketIOEvents() {
     fromEvent<IFreedrawSocketEvent>(this.$socket, 'draw')
-      .pipe(takeUntil(this.unsubscriber))
+      .pipe(
+        takeUntil(this.unsubscriber),
+        map(event => ({
+          ...event,
+          timestamp: new Date(event.timestamp),
+        }))
+      )
       .subscribe(this.addOrUpdate.bind(this))
   }
 

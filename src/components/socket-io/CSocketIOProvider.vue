@@ -1,6 +1,6 @@
 <template>
   <div>
-    <slot />
+    <slot v-bind="$socket" />
   </div>
 </template>
 
@@ -22,7 +22,6 @@ export default class CSocketIOProvider extends Vue {
   }
 
   mounted() {
-    console.debug(ConfigUtils.WS_URL)
     this.$socket = io(ConfigUtils.WS_URL)
   }
 

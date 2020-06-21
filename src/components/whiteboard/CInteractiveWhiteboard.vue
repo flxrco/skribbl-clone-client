@@ -15,6 +15,7 @@ import {
   mapTo,
   take,
   map,
+  share,
 } from 'rxjs/operators'
 import WhiteboardMixin from './whiteboard.mixin'
 import { Prop, Watch, Component, Emit } from 'vue-property-decorator'
@@ -112,7 +113,8 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             points: canvas.freeDrawingBrush._points as IPoint[],
           } as IFreedrawProgress)
-      )
+      ),
+      share()
     )
 
     drawing$
