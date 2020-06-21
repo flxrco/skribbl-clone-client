@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
     "noImplicitReturns": false

@@ -20,7 +20,6 @@ import WhiteboardMixin from './whiteboard.mixin'
 import { Prop, Watch, Component, Emit } from 'vue-property-decorator'
 import FabricUtils from '../../utils/fabric.util'
 import GeomUtils from '../../utils/geom.util'
-import IFreedrawPath from './freedraw-path.interface'
 import IPoint from '../../models/geometry/point.interface'
 import FreedrawingStatus from './freedrawing-status.enum'
 import shortid from 'shortid'
@@ -140,12 +139,12 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
    * The resulting IFreedrawPath will be emitted.
    */
   @Emit('drawing-finished')
-  emitDrawingFinished(progress: IFreedrawProgress): IFreedrawPath {
+  emitDrawingFinished(progress: IFreedrawProgress): IFreedrawEvent {
     return this.transformToEvent(progress)
   }
 
   @Emit('drawing-ongoing')
-  emitDrawingOngoing(progress: IFreedrawProgress): IFreedrawPath {
+  emitDrawingOngoing(progress: IFreedrawProgress): IFreedrawEvent {
     return this.transformToEvent(progress)
   }
 

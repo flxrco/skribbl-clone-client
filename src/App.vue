@@ -1,12 +1,19 @@
 <template>
   <div id="q-app">
-    <router-view />
+    <CSocketIOProvider>
+      <router-view />
+    </CSocketIOProvider>
   </div>
 </template>
 
 <script lang="ts">
 import 'reflect-metadata'
-export default {
-  name: 'App',
-}
+import Vue from 'vue'
+import Component from 'vue-class-component'
+import CSocketIOProvider from './components/socket-io/CSocketIOProvider.vue'
+
+@Component({
+  components: { CSocketIOProvider },
+})
+export default class App extends Vue {}
 </script>
