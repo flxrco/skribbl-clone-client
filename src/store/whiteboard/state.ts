@@ -1,11 +1,13 @@
-import IFreedrawSocketEvent from 'src/components/whiteboard/freedraw-socket-event.interface'
+import IFreehandEvent from 'src/models/whiteboard/freehand-event.interface'
 
 export interface IWhiteboardState {
-  drawEvents: IFreedrawSocketEvent[]
+  ongoing: IFreehandEvent[]
+  finished: IFreehandEvent[]
 }
 
 const state: IWhiteboardState = {
-  drawEvents: [],
+  ongoing: [],
+  finished: [],
 }
 
 export default state

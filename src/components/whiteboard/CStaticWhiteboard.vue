@@ -8,17 +8,17 @@
 import Component from 'vue-class-component'
 import { fabric } from 'fabric'
 import { Prop, Watch } from 'vue-property-decorator'
-import IFreedrawPath from './freedraw-path.interface'
 import WhiteboardMixin from './whiteboard.mixin'
 import IPoint from '../../models/geometry/point.interface'
 import GeomUtils from '../../utils/geom.util'
+import IFreehandPath from '../../models/whiteboard/freehand-path.interface'
 
 @Component
 export default class CStaticWhiteboard extends WhiteboardMixin {
   @Prop({
-    default: () => [] as IFreedrawPath[],
+    default: () => [] as IFreehandPath[],
   })
-  paths!: IFreedrawPath[]
+  paths!: IFreehandPath[]
 
   /**
    * On mount, the canvas will be bootstrapped.

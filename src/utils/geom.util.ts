@@ -21,6 +21,10 @@ export default class GeomUtils {
     }
   }
 
+  static scalePath(path: IPoint[], scale = 1, offset = 0): IPoint[] {
+    return path.map(point => this.scalePoint(point, scale, offset))
+  }
+
   static getScale(
     sourceDims: IDimensions,
     { width: maxWidth, height: maxHeight }: IDimensions

@@ -1,31 +1,35 @@
 import { MutationTree } from 'vuex'
 import { IWhiteboardState } from './state'
-import IFreedrawSocketEvent from 'src/components/whiteboard/freedraw-socket-event.interface'
+import IFreehandEvent from 'src/models/whiteboard/freehand-event.interface'
 
 const mutation: MutationTree<IWhiteboardState> = {
-  addEvent({ drawEvents }, event: IFreedrawSocketEvent) {
-    drawEvents.push(event)
+  updateOrPushToFinished({ finished }, path: IFreehandEvent) {
+    const index = finished.findIndex(inState => inState.id === path.id)
+    if (index === -1) {
+      finished.push(path)
+    } else {
+      finished.splice(index, 1, path)
+    }
+
+    finished.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
   },
 
-  updateEvent({ drawEvents }, event: IFreedrawSocketEvent) {
-    const index = drawEvents.findIndex(e => e.id === event.id)
+  updateOrPushToOngoing({ ongoing }, path: IFreehandEvent) {
+    const index = ongoing.findIndex(inState => path.id === inState.id)
+    if (index == -1) {
+      ongoing.push(path)
+    }
+
+    ongoing.splice(index, 1, path)
+  },
+
+  removeFromOngoing({ ongoing }, id: string) {
+    const index = ongoing.findIndex(inState => id === inState.id)
     if (index === -1) {
       return
     }
 
-    drawEvents[index] = event
-  },
-
-  addOrUpdate({ drawEvents }, event: IFreedrawSocketEvent) {
-    const index = drawEvents.findIndex(e => e.id === event.id)
-    if (index === -1) {
-      drawEvents.push(event)
-      return
-    } else if (drawEvents[index].timestamp >= event.timestamp) {
-      return
-    }
-
-    drawEvents.splice(index, 1, event)
+    ongoing.splice(index, 1)
   },
 }
 

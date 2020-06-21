@@ -11,21 +11,20 @@ import {
   takeUntil,
   exhaustMap,
   filter,
-  auditTime,
   mapTo,
   take,
   map,
   share,
+  throttleTime,
 } from 'rxjs/operators'
 import WhiteboardMixin from './whiteboard.mixin'
-import { Prop, Watch, Component, Emit } from 'vue-property-decorator'
+import { Prop, Watch, Component } from 'vue-property-decorator'
 import FabricUtils from '../../utils/fabric.util'
 import GeomUtils from '../../utils/geom.util'
 import IPoint from '../../models/geometry/point.interface'
-import FreedrawingStatus from './freedrawing-status.enum'
 import shortid from 'shortid'
-import IFreedrawProgress from './freedraw-progress.interface'
-import IFreedrawEvent from './freedraw-event.interface'
+import FreehandStatus from '../../models/whiteboard/freehand-status.enum'
+import IFreehandPath from '../../models/whiteboard/freehand-path.interface'
 
 @Component
 export default class CInteractiveWhiteboard extends WhiteboardMixin {
@@ -94,71 +93,57 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
       exhaustMap(() => {
         const id = shortid()
         return merge(
-          of({ status: FreedrawingStatus.ONGOING, id }),
+          of({ status: FreehandStatus.STARTED, id }),
           mouseMove$.pipe(
             takeUntil(mouseUp$),
-            mapTo({ status: FreedrawingStatus.ONGOING, id })
+            mapTo({ status: FreehandStatus.ONGOING, id })
           ),
-          mouseUp$.pipe(
-            take(1),
-            mapTo({ status: FreedrawingStatus.FINISHED, id })
-          )
+          mouseUp$.pipe(take(1), mapTo({ status: FreehandStatus.FINISHED, id }))
         )
       }),
-      auditTime(50),
-      map(
-        data =>
-          ({
-            ...data,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            points: canvas.freeDrawingBrush._points as IPoint[],
-          } as IFreedrawProgress)
-      ),
-      share()
+      map(data => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const raw = canvas.freeDrawingBrush._points as IPoint[]
+
+        return {
+          ...data,
+          points: GeomUtils.scalePath(raw, 1 / this.scale),
+          color: this.brushColor,
+          width: this.brushWidth,
+        }
+      }),
+      share(),
+      takeUntil(this.unsubscriber)
+    )
+
+    const omitStatus = map<IFreehandPath, IFreehandPath>(
+      ({ points, width, color, id }) => ({ points, width, color, id })
     )
 
     drawing$
       .pipe(
-        filter(event => event.status === FreedrawingStatus.ONGOING),
-        takeUntil(this.unsubscriber)
+        filter(({ status }) => status === FreehandStatus.STARTED),
+        omitStatus
       )
-      .subscribe(this.emitDrawingOngoing.bind(this))
+      .subscribe(pathData => this.$emit('started', pathData))
 
     drawing$
       .pipe(
-        filter(event => event.status === FreedrawingStatus.FINISHED),
-        takeUntil(this.unsubscriber)
+        filter(({ status }) => status === FreehandStatus.FINISHED),
+        omitStatus
       )
-      .subscribe(event => {
-        this.emitDrawingFinished(event)
+      .subscribe(pathData => {
+        this.$emit('finished', pathData)
         this.canvas.clear()
       })
-  }
 
-  /**
-   * Converts the fabric.js Path into the format of IFreedrawPath.
-   * Automatically scales the points and the brush width into 1.
-   * The resulting IFreedrawPath will be emitted.
-   */
-  @Emit('drawing-finished')
-  emitDrawingFinished(progress: IFreedrawProgress): IFreedrawEvent {
-    return this.transformToEvent(progress)
-  }
-
-  @Emit('drawing-ongoing')
-  emitDrawingOngoing(progress: IFreedrawProgress): IFreedrawEvent {
-    return this.transformToEvent(progress)
-  }
-
-  transformToEvent(event: IFreedrawProgress): IFreedrawEvent {
-    return {
-      ...event,
-      points: event.points.map(point =>
-        GeomUtils.scalePoint(point, 1 / this.scale)
-      ),
-      color: this.brushColor,
-      width: this.brushWidth,
-    }
+    drawing$
+      .pipe(
+        filter(({ status }) => status === FreehandStatus.ONGOING),
+        omitStatus,
+        throttleTime(75)
+      )
+      .subscribe(pathData => this.$emit('moved', pathData))
   }
 
   mounted() {

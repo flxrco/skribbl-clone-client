@@ -2,19 +2,28 @@
   <q-page>
     <div class="absolute-full flex column justify-center items-center">
       <CStaticWhiteboard
-        class="whiteboard static"
+        class="whiteboard static finished"
         :dimensions="sourceDims"
         :scale="scale"
-        :paths="paths"
+        :paths="finished"
       />
+
+      <CStaticWhiteboard
+        class="whiteboard static ongoing"
+        :dimensions="sourceDims"
+        :scale="scale"
+        :paths="ongoing"
+      />
+
       <CInteractiveWhiteboard
         class="whiteboard interactive"
         :dimensions="sourceDims"
         :scale="scale"
         :allowDrawing="true"
         brushColor="#555555"
-        @drawing-finished="onDrawingEvent"
-        @drawing-ongoing="onDrawingEvent"
+        @started="onDrawingStart"
+        @moved="onDrawingMove"
+        @finished="onDrawingFinish"
       />
       <q-resize-observer @resize="onResize" />
     </div>
@@ -30,12 +39,11 @@ import FabricUtils from '../utils/fabric.util'
 import GeomUtils from '../utils/geom.util'
 import CInteractiveWhiteboard from 'components/whiteboard/CInteractiveWhiteboard.vue'
 import { InjectReactive } from 'vue-property-decorator'
-import { fromEvent, Subject } from 'rxjs'
-import IFreedrawEvent from '../components/whiteboard/freedraw-event.interface'
-import { takeUntil, map } from 'rxjs/operators'
-import { mapMutations, mapGetters } from 'vuex'
-import IFreedrawPath from '../components/whiteboard/freedraw-path.interface'
-import IFreedrawSocketEvent from '../components/whiteboard/freedraw-socket-event.interface'
+import { fromEvent, Subject, merge } from 'rxjs'
+import { takeUntil } from 'rxjs/operators'
+import { mapActions, mapState, mapMutations } from 'vuex'
+import IFreehandPath from '../models/whiteboard/freehand-path.interface'
+import IFreehandEvent from '../models/whiteboard/freehand-event.interface'
 
 @Component({
   components: {
@@ -43,10 +51,11 @@ import IFreedrawSocketEvent from '../components/whiteboard/freedraw-socket-event
     CInteractiveWhiteboard,
   },
   computed: {
-    ...mapGetters('whiteboard', ['paths']),
+    ...mapState('whiteboard', ['finished', 'ongoing']),
   },
   methods: {
-    ...mapMutations('whiteboard', ['addOrUpdate']),
+    ...mapActions('whiteboard', ['addToOngoing', 'addToFinished']),
+    ...mapMutations('whiteboard', ['updateOrPushToFinished']),
   },
 })
 export default class Index extends Vue {
@@ -57,7 +66,8 @@ export default class Index extends Vue {
   @InjectReactive()
   readonly socket!: SocketIOClient.Socket
 
-  paths!: IFreedrawPath[]
+  finished!: IFreehandEvent[]
+  ongoing!: IFreehandEvent[]
 
   get scale(): number {
     return GeomUtils.getScale(this.sourceDims, this.parentDims)
@@ -67,27 +77,50 @@ export default class Index extends Vue {
     this.parentDims = parentDims
   }
 
-  onDrawingEvent(path: IFreedrawEvent) {
-    this.addOrUpdate({
+  onDrawingStart(path: IFreehandPath) {
+    this.socket.emit('started', path)
+  }
+
+  onDrawingMove(path: IFreehandPath) {
+    this.socket.emit('moved', path)
+  }
+
+  onDrawingFinish(path: IFreehandPath) {
+    this.updateOrPushToFinished({
       ...path,
+      points: GeomUtils.smoothenPolyline(path.points),
       timestamp: new Date(),
     })
-    this.socket.emit('draw', path)
+
+    this.socket.emit('finished', path)
   }
 
   handleSocketIOEvents() {
-    fromEvent<IFreedrawSocketEvent>(this.socket, 'draw')
-      .pipe(
-        takeUntil(this.unsubscriber),
-        map(event => ({
-          ...event,
-          timestamp: new Date(event.timestamp),
-        }))
+    merge(
+      fromEvent<IFreehandEvent>(this.socket, 'started'),
+      fromEvent<IFreehandEvent>(this.socket, 'moved')
+    )
+      .pipe(takeUntil(this.unsubscriber))
+      .subscribe(data =>
+        this.addToOngoing({
+          ...data,
+          timestamp: new Date(data.timestamp),
+        })
       )
-      .subscribe(this.addOrUpdate.bind(this))
+
+    fromEvent<IFreehandEvent>(this.socket, 'finished')
+      .pipe(takeUntil(this.unsubscriber))
+      .subscribe(data =>
+        this.addToFinished({
+          ...data,
+          timestamp: new Date(data.timestamp),
+        })
+      )
   }
 
-  addOrUpdate!: (event: IFreedrawSocketEvent) => void
+  addToOngoing: (path: IFreehandEvent) => void
+  addToFinished: (path: IFreehandEvent) => void
+  updateOrPushToFinished: (path: IFreehandEvent) => void
 
   mounted() {
     this.socket.connect()
@@ -106,8 +139,13 @@ export default class Index extends Vue {
   position: absolute;
 }
 
-.whiteboard.static {
+.whiteboard.static,
+.whiteboard.static.finished {
   z-index: 1;
+}
+
+.whiteboard.static.ongoing {
+  z-index: 3;
 }
 
 .whiteboard.interactive {
