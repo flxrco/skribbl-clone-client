@@ -43,9 +43,7 @@ import IFreedrawSocketEvent from '../components/whiteboard/freedraw-socket-event
     CInteractiveWhiteboard,
   },
   computed: {
-    ...mapGetters('whiteboard', {
-      paths: 'drawn',
-    }),
+    ...mapGetters('whiteboard', ['paths']),
   },
   methods: {
     ...mapMutations('whiteboard', ['addOrUpdate']),

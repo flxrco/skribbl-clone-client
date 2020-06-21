@@ -25,7 +25,7 @@ const mutation: MutationTree<IWhiteboardState> = {
       return
     }
 
-    drawEvents[index] = event
+    drawEvents.splice(index, 1, event)
   },
 }
 
