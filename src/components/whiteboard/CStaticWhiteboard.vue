@@ -41,7 +41,7 @@ export default class CStaticWhiteboard extends WhiteboardMixin {
   get polylines(): fabric.Polyline[] {
     return this.paths.map(
       ({ color, width }, index) =>
-        new fabric.Polyline(this.scaledAndSmoothenedPaths[index], {
+        new fabric.Polyline(this.scaledPaths[index], {
           stroke: color,
           strokeWidth: width * this.scale,
           fill: 'transparent',
@@ -51,13 +51,10 @@ export default class CStaticWhiteboard extends WhiteboardMixin {
     )
   }
 
-  get scaledAndSmoothenedPaths(): IPoint[][] {
-    return this.paths
-      .map(path => path.points)
-      .map(pointArr => {
-        return pointArr.map(point => GeomUtils.scalePoint(point, this.scale))
-      })
-      .map(scaledPointArr => GeomUtils.smoothenPolyline(scaledPointArr, 2))
+  get scaledPaths(): IPoint[][] {
+    return this.paths.map(({ points }) =>
+      points.map(point => GeomUtils.scalePoint(point, this.scale))
+    )
   }
 
   didDimensionsChange() {
