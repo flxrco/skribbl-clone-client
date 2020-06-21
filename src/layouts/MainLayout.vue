@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import EssentialLink from 'components/EssentialLink.vue';
+import EssentialLink from 'components/EssentialLink.vue'
 
 export default {
   name: 'MainLayout',
@@ -100,7 +100,7 @@ export default {
           link: 'https://awesome.quasar.dev',
         },
       ],
-    };
+    }
   },
-};
+}
 </script>

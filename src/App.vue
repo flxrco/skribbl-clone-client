@@ -5,7 +5,8 @@
 </template>
 
 <script lang="ts">
+import 'reflect-metadata'
 export default {
   name: 'App',
-};
+}
 </script>
