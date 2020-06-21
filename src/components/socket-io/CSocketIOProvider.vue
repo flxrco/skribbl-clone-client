@@ -1,6 +1,6 @@
 <template>
   <div>
-    <slot v-bind="$socket" />
+    <slot v-bind="socket" />
   </div>
 </template>
 
@@ -15,19 +15,19 @@ import ConfigUtils from 'src/utils/config.util.ts'
  */
 @Component
 export default class CSocketIOProvider extends Vue {
-  @ProvideReactive() $socket: SocketIOClient.Socket = null
+  @ProvideReactive() socket = io(ConfigUtils.WS_URL)
 
   render() {
     return this.$slots.default
   }
 
   mounted() {
-    this.$socket = io(ConfigUtils.WS_URL)
+    this.socket = io(ConfigUtils.WS_URL)
   }
 
   destroyed() {
-    if (this.$socket && this.$socket.connected) {
-      this.$socket.disconnect()
+    if (this.socket.connected) {
+      this.socket.disconnect()
     }
   }
 }

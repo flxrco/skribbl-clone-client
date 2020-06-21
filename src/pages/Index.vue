@@ -57,7 +57,7 @@ export default class Index extends Vue {
   private unsubscriber = new Subject<void>()
 
   @InjectReactive()
-  readonly $socket!: SocketIOClient.Socket
+  readonly socket!: SocketIOClient.Socket
 
   paths!: IFreedrawPath[]
 
@@ -74,11 +74,11 @@ export default class Index extends Vue {
       ...path,
       timestamp: new Date(),
     })
-    this.$socket.emit('draw', path)
+    this.socket.emit('draw', path)
   }
 
   handleSocketIOEvents() {
-    fromEvent<IFreedrawSocketEvent>(this.$socket, 'draw')
+    fromEvent<IFreedrawSocketEvent>(this.socket, 'draw')
       .pipe(
         takeUntil(this.unsubscriber),
         map(event => ({
@@ -92,7 +92,7 @@ export default class Index extends Vue {
   addOrUpdate!: (event: IFreedrawSocketEvent) => void
 
   mounted() {
-    this.$socket.connect()
+    this.socket.connect()
     this.handleSocketIOEvents()
   }
 
