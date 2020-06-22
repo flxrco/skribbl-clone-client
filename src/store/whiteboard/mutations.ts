@@ -1,6 +1,7 @@
 import { MutationTree } from 'vuex'
 import { IWhiteboardState } from './state'
 import IFreehandEvent from 'src/models/whiteboard/freehand-event.interface'
+import IBrushSettings from 'src/models/whiteboard/brush-settings.interface'
 
 const mutation: MutationTree<IWhiteboardState> = {
   updateOrPushToFinished({ finished }, path: IFreehandEvent) {
@@ -30,6 +31,11 @@ const mutation: MutationTree<IWhiteboardState> = {
     }
 
     ongoing.splice(index, 1)
+  },
+
+  setBrushOptions({ brush }, { diameter, color }: IBrushSettings) {
+    brush.color = color
+    brush.diameter = diameter
   },
 }
 
