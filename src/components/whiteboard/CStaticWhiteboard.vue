@@ -26,7 +26,7 @@ export default class CStaticWhiteboard extends WhiteboardMixin {
   mounted() {
     this.canvas = new fabric.StaticCanvas(this.id, {
       renderOnAddRemove: false,
-      // contains width and height
+      // contains diameter and height
       ...this.scaledDimensions,
       backgroundColor: this.backgroundColor,
     })
@@ -36,14 +36,14 @@ export default class CStaticWhiteboard extends WhiteboardMixin {
 
   /**
    * Converts the paths to polylines which already contain
-   * stroke width and color data. Ready to be plugged into the canvas.
+   * stroke diameter and color data. Ready to be plugged into the canvas.
    */
   get polylines(): fabric.Polyline[] {
     return this.paths.map(
-      ({ color, width }, index) =>
+      ({ color, diameter }, index) =>
         new fabric.Polyline(this.scaledPaths[index], {
           stroke: color,
-          strokeWidth: width * this.scale,
+          strokeWidth: diameter * this.scale,
           fill: 'transparent',
           strokeLineCap: 'round',
           strokeLineJoin: 'round',

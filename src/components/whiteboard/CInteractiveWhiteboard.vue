@@ -36,18 +36,18 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
   @Prop({ default: () => true })
   allowDrawing!: boolean
 
-  // width of the brush
+  // diameter of the brush
   @Prop({ default: () => 5 })
-  brushWidth!: number
+  brushDiameter!: number
 
   // color of the brush, in hex
   @Prop({ default: () => '#000000' })
   brushColor!: string
 
   get scaledBrushConfig() {
-    const { brushWidth, brushColor } = this
+    const { brushDiameter, brushColor } = this
     return {
-      width: brushWidth * this.scale,
+      diameter: brushDiameter * this.scale,
       color: brushColor,
     }
   }
@@ -74,9 +74,9 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
       return
     }
 
-    const { width, color } = this.scaledBrushConfig
+    const { diameter, color } = this.scaledBrushConfig
     brush.color = color
-    brush.width = width
+    brush.width = diameter
   }
 
   listenForDrawing() {
@@ -109,7 +109,7 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
           ...data,
           points: GeomUtils.scalePath(raw, 1 / this.scale),
           color: this.brushColor,
-          width: this.brushWidth,
+          diameter: this.brushDiameter,
         }
       }),
       share(),
@@ -117,7 +117,7 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
     )
 
     const omitStatus = map<IFreehandPath, IFreehandPath>(
-      ({ points, width, color, id }) => ({ points, width, color, id })
+      ({ points, diameter, color, id }) => ({ points, diameter, color, id })
     )
 
     drawing$

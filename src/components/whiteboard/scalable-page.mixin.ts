@@ -18,7 +18,7 @@ export default abstract class ScalablePageMixin extends Vue {
   dimensions!: IDimensions
 
   /**
-   * How much the dimensions of the source will be scaled. The widths and the coordinates
+   * How much the dimensions of the source will be scaled. The diameters and the coordinates
    * of the freehand paths will be adjusted according to this scale.
    */
   @Prop({
