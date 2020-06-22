@@ -20,7 +20,8 @@
         :dimensions="sourceDims"
         :scale="scale"
         :allowDrawing="true"
-        brushColor="#555555"
+        :brushColor="brush.color"
+        :brushDiameter="brush.diameter"
         @started="onDrawingStart"
         @moved="onDrawingMove"
         @finished="onDrawingFinish"
@@ -44,6 +45,7 @@ import { takeUntil } from 'rxjs/operators'
 import { mapActions, mapState, mapMutations } from 'vuex'
 import IFreehandPath from '../models/whiteboard/freehand-path.interface'
 import IFreehandEvent from '../models/whiteboard/freehand-event.interface'
+import IBrushSettings from '../models/whiteboard/brush-settings.interface'
 
 @Component({
   components: {
@@ -51,7 +53,7 @@ import IFreehandEvent from '../models/whiteboard/freehand-event.interface'
     CInteractiveWhiteboard,
   },
   computed: {
-    ...mapState('whiteboard', ['finished', 'ongoing']),
+    ...mapState('whiteboard', ['finished', 'ongoing', 'brush']),
   },
   methods: {
     ...mapActions('whiteboard', ['addToOngoing', 'addToFinished']),
@@ -68,6 +70,7 @@ export default class Index extends Vue {
 
   finished!: IFreehandEvent[]
   ongoing!: IFreehandEvent[]
+  brush!: IBrushSettings
 
   get scale(): number {
     return GeomUtils.getScale(this.sourceDims, this.parentDims)
