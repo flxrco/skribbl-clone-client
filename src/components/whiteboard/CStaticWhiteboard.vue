@@ -51,14 +51,23 @@ export default class CStaticWhiteboard extends WhiteboardMixin {
     )
   }
 
+  /**
+   * Getter for transforming the points from the paths received
+   * via the props into scaled paths.
+   */
   get scaledPaths(): IPoint[][] {
     return this.paths.map(({ points }) =>
       points.map(point => GeomUtils.scalePoint(point, this.scale))
     )
   }
 
+  /**
+   * Overrides the function from the super class; runs when
+   * the dimensions/scaling changed. No need to do anything because
+   * polylines will react and `onPolylinesChange` will go in its stead.
+   */
   didDimensionsChange() {
-    this.renderCanvas()
+    // noop
   }
 
   @Watch('polylines')
@@ -69,6 +78,8 @@ export default class CStaticWhiteboard extends WhiteboardMixin {
   /**
    * To be called whenever theres a change to the dimension,
    * scale, or the paths.
+   *
+   * Clears the entire canvas first before laying out the objects.
    */
   renderCanvas() {
     if (!this.canvas) {

@@ -3,6 +3,10 @@
     <q-color v-model="color" />
     <q-card>
       <q-card-section>
+        <div class="text-grey text-caption fke row justify-between">
+          <span>Brush Diameter</span>
+          <span class="text-bold">{{ labelValue }}</span>
+        </div>
         <q-slider
           v-model="diameter"
           :min="1"

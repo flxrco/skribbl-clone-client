@@ -44,6 +44,10 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
   @Prop({ default: () => '#000000' })
   brushColor!: string
 
+  /**
+   * compiles the brush-related props into one object
+   * and computes the scaled version of the brush diameter.
+   */
   get scaledBrushConfig() {
     const { brushDiameter, brushColor } = this
     return {
@@ -67,6 +71,13 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
     this.updatescaledBrushConfig()
   }
 
+  /**
+   * Upon update of any brush-related props, this function
+   * will be executed.
+   *
+   * This function assigns the proper valeus to the fabric.js
+   * canvas' brush.
+   */
   updatescaledBrushConfig() {
     const brush = this.canvas.freeDrawingBrush
 
@@ -79,6 +90,11 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
     brush.width = diameter
   }
 
+  /**
+   * Contains the code which listens to canvas events.
+   * This is also in charge of emitting the component events appropriate
+   * from what we received from the canvas.
+   */
   listenForDrawing() {
     // need to use `any` because of typing confict between rxjs and canvas with regards to the event callback parameter on Object#on
 
@@ -89,15 +105,33 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
     const mouseMove$ = fromEvent(canvas, 'mouse:move')
 
     const drawing$ = mouseDown$.pipe(
+      // we'll only listen for them events if drawing is enabled
       filter(() => this.allowDrawing),
       exhaustMap(() => {
+        // this map makes sure that we'll only listen for mouseDown events again if we received a mouseUp event
         const id = shortid()
         return merge(
+          // this code emits that the drawing has started. this is automatically emitted upon mouse click down
           of({ status: FreehandStatus.STARTED, id }),
+          /*
+           * remember: we've reached this line because we have clicked the LMB.
+           * this event emits mousemove events, for our case, these events would mean that the mouse
+           * has moved while the LMB is held down. this is a stroke in the canvas
+           */
           mouseMove$.pipe(
+            /**
+             * this will never stop until we tell -- in our case, we'll stop listening
+             * for mouseMove events if we received a mouseup event.
+             *
+             * if we have finished drawing (mouse up) and we forgot to terminate this observable
+             * via takeUntil, the exhaustmap will think that we're still drawing in the canvas.
+             *
+             * exhaustmap will only release its hold if all of these three observables have terminated
+             */
             takeUntil(mouseUp$),
             mapTo({ status: FreehandStatus.ONGOING, id })
           ),
+          // mouseup events siginify that the drawing has finished
           mouseUp$.pipe(take(1), mapTo({ status: FreehandStatus.FINISHED, id }))
         )
       }),
@@ -112,7 +146,9 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
           diameter: this.brushDiameter,
         }
       }),
+      // assurance that the subscribe calls below wont spawn three instances of this big-ass observable
       share(),
+      // this is to prevent memory leaks. all three subscriptions below will be automatically pruged if this big observable has completed
       takeUntil(this.unsubscriber)
     )
 
@@ -141,7 +177,7 @@ export default class CInteractiveWhiteboard extends WhiteboardMixin {
       .pipe(
         filter(({ status }) => status === FreehandStatus.ONGOING),
         omitStatus,
-        throttleTime(75)
+        throttleTime(150)
       )
       .subscribe(pathData => this.$emit('moved', pathData))
   }
