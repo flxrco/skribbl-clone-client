@@ -18,7 +18,7 @@
     "chaikin-smooth": "^1.0.4",
     "core-js": "^3.6.5",
     "fabric": "^3.6.3",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "proportional-scale": "^3.0.0",
     "quasar": "^1.0.0",
     "reflect-metadata": "^0.1.13",
