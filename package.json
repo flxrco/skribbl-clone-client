@@ -14,7 +14,7 @@
   "dependencies": {
     "@quasar/extras": "^1.0.0",
     "@stomp/rx-stomp": "^0.3.5",
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "chaikin-smooth": "^1.0.4",
     "core-js": "^3.6.5",
     "fabric": "^3.6.3",
